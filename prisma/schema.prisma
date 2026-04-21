@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  JEFE
+  EMPLEADO
+}
+
+enum MachineStatus {
+  OPERATIVA
+  EN_MANTENIMIENTO
+  FUERA_DE_SERVICIO
+}
+
+enum WorkType {
+  PREDICTIVO
+  PREVENTIVO
+  CORRECTIVO
+  MEJORA
+  INSPECCION
+}
+
+enum Priority {
+  BAJA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+enum OrderStatus {
+  PENDIENTE
+  EN_PROGRESO
+  COMPLETADA
+  CANCELADA
+}
+
+enum Visibility {
+  SOLO_JEFES
+  ASIGNADOS
+  TODOS
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  pinHash       String
+  name          String
+  role          Role      @default(EMPLEADO)
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  createdOrders WorkOrder[]            @relation("CreatedOrders")
+  assignments   WorkOrderAssignment[]
+}
+
+model Machine {
+  id          String        @id @default(cuid())
+  code        String        @unique
+  name        String
+  location    String?
+  description String?
+  status      MachineStatus @default(OPERATIVA)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  orders WorkOrder[]
+}
+
+model WorkOrder {
+  id           String       @id @default(cuid())
+  number       Int          @unique @default(autoincrement())
+  title        String
+  description  String
+  type         WorkType
+  priority     Priority     @default(MEDIA)
+  status       OrderStatus  @default(PENDIENTE)
+  visibility   Visibility   @default(SOLO_JEFES)
+  scheduledFor DateTime?
+  completedAt  DateTime?
+  notes        String?
+
+  machineId String
+  machine   Machine @relation(fields: [machineId], references: [id], onDelete: Restrict)
+
+  creatorId String
+  creator   User   @relation("CreatedOrders", fields: [creatorId], references: [id])
+
+  assignments WorkOrderAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@index([machineId])
+}
+
+model WorkOrderAssignment {
+  id          String    @id @default(cuid())
+  workOrderId String
+  userId      String
+  createdAt   DateTime  @default(now())
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workOrderId, userId])
+  @@index([userId])
+}
