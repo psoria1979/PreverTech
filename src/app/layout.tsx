@@ -16,6 +16,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PreverTech · Mantenimiento Industrial",
   description: "Gestión de órdenes de trabajo y mantenimiento industrial",
+  applicationName: "PreverTech",
+  appleWebApp: {
+    capable: true,
+    title: "PreverTech",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
+};
+
+export const viewport = {
+  themeColor: "#ea580c",
 };
 
 export default function RootLayout({

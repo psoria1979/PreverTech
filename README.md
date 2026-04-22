@@ -42,6 +42,11 @@ Aplicación web para gestionar mantenimiento industrial: órdenes de trabajo (pr
   - Se generan cuando se asigna una orden a un empleado o cuando cambia el estado de una orden en la que está asignado.
   - Badge con conteo de no leídas en el menú; vista dedicada en `/notifications`.
 - **Perfil de usuario** (`/profile`): ver datos propios y **cambiar el PIN** propio.
+- **Repuestos / inventario** (`/parts`): catálogo con stock y stock mínimo, costo unitario, alerta visual cuando el stock está bajo.
+- **Consumo de repuestos por orden**: los jefes y empleados asignados registran consumos en el detalle de la orden; descuenta stock automáticamente, captura el costo unitario al momento y calcula el total de la orden. Eliminar un consumo devuelve el stock.
+- **Registro de tiempo trabajado por orden**: carga de horas/minutos con nota, totalizado por orden.
+- **Planes de mantenimiento preventivo recurrentes** (`/plans`, solo jefes): definen tarea + máquina + frecuencia + próxima fecha. El botón "Generar vencidos" (o `POST /api/plans/generate`) crea órdenes automáticamente y avanza la próxima fecha según la frecuencia. Las órdenes generadas quedan vinculadas al plan.
+- **PWA**: manifest + ícono, se puede instalar en el celular desde el navegador ("Agregar a la pantalla de inicio").
 
 ## Setup
 

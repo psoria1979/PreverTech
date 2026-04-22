@@ -28,6 +28,8 @@ export default async function AppLayout({
           <NavLink href="/dashboard" label="Dashboard" />
           <NavLink href="/orders" label="Órdenes de trabajo" />
           <NavLink href="/machines" label="Máquinas" />
+          <NavLink href="/parts" label="Repuestos" />
+          {isJefe && <NavLink href="/plans" label="Planes preventivos" />}
           <NavLink
             href="/notifications"
             label="Notificaciones"

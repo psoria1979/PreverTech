@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge, PriorityBadge, TypeBadge } from "@/components/Badges";
 import { PhotosSection } from "./PhotosSection";
 import { CommentsSection } from "./CommentsSection";
+import { PartsSection } from "./PartsSection";
+import { TimeSection } from "./TimeSection";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +47,17 @@ export default async function OrderDetailPage({
         orderBy: { createdAt: "asc" },
         include: { user: { select: { id: true, name: true, username: true } } },
       },
+      partUsages: {
+        orderBy: { createdAt: "asc" },
+        include: {
+          part: { select: { id: true, code: true, name: true, unit: true } },
+          user: { select: { id: true, name: true, username: true } },
+        },
+      },
+      timeLogs: {
+        orderBy: { createdAt: "asc" },
+        include: { user: { select: { id: true, name: true, username: true } } },
+      },
     },
   });
   if (!order) notFound();
@@ -59,6 +72,21 @@ export default async function OrderDetailPage({
   const isJefe = user.role === "JEFE";
   const isAssignee = order.assignments.some((a) => a.userId === user.id);
   const canUpload = isJefe || isAssignee;
+  const canEditExtras = isJefe || isAssignee;
+
+  const partsCatalog = canEditExtras
+    ? await prisma.part.findMany({
+        orderBy: { code: "asc" },
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          unit: true,
+          stock: true,
+          unitCost: true,
+        },
+      })
+    : [];
 
   return (
     <>
@@ -159,6 +187,37 @@ export default async function OrderDetailPage({
           createdAt: p.createdAt.toISOString(),
         }))}
         canUpload={canUpload}
+      />
+
+      <PartsSection
+        orderId={order.id}
+        currentUserId={user.id}
+        currentUserRole={user.role}
+        canEdit={canEditExtras}
+        parts={partsCatalog}
+        initial={order.partUsages.map((u) => ({
+          id: u.id,
+          quantity: u.quantity,
+          unitCost: u.unitCost,
+          note: u.note,
+          createdAt: u.createdAt.toISOString(),
+          part: u.part,
+          user: u.user,
+        }))}
+      />
+
+      <TimeSection
+        orderId={order.id}
+        currentUserId={user.id}
+        currentUserRole={user.role}
+        canEdit={canEditExtras}
+        initial={order.timeLogs.map((l) => ({
+          id: l.id,
+          minutes: l.minutes,
+          note: l.note,
+          createdAt: l.createdAt.toISOString(),
+          user: l.user,
+        }))}
       />
 
       <CommentsSection

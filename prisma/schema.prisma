@@ -60,6 +60,8 @@ model User {
   assignments   WorkOrderAssignment[]
   notifications Notification[]
   comments      OrderComment[]
+  partUsages    PartUsage[]
+  timeLogs      TimeLog[]
 }
 
 model Machine {
@@ -73,6 +75,7 @@ model Machine {
   updatedAt   DateTime      @updatedAt
 
   orders WorkOrder[]
+  plans  MaintenancePlan[]
 }
 
 model WorkOrder {
@@ -98,6 +101,11 @@ model WorkOrder {
   photos      WorkOrderPhoto[]
   notifications Notification[]
   comments    OrderComment[]
+  partUsages  PartUsage[]
+  timeLogs    TimeLog[]
+
+  planId String?
+  plan   MaintenancePlan? @relation("GeneratedFromPlan", fields: [planId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -106,6 +114,7 @@ model WorkOrder {
   @@index([type])
   @@index([machineId])
   @@index([createdAt])
+  @@index([planId])
 }
 
 model WorkOrderPhoto {
@@ -162,4 +171,73 @@ model WorkOrderAssignment {
 
   @@unique([workOrderId, userId])
   @@index([userId])
+}
+
+model Part {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  unit        String   @default("u")
+  description String?
+  stock       Float    @default(0)
+  minStock    Float    @default(0)
+  unitCost    Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  usages PartUsage[]
+}
+
+model PartUsage {
+  id          String   @id @default(cuid())
+  workOrderId String
+  partId      String
+  userId      String
+  quantity    Float
+  unitCost    Float
+  note        String?
+  createdAt   DateTime @default(now())
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  part      Part      @relation(fields: [partId], references: [id], onDelete: Restrict)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([workOrderId])
+  @@index([partId])
+}
+
+model TimeLog {
+  id          String   @id @default(cuid())
+  workOrderId String
+  userId      String
+  minutes     Int
+  note        String?
+  createdAt   DateTime @default(now())
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([workOrderId])
+  @@index([userId])
+}
+
+model MaintenancePlan {
+  id              String     @id @default(cuid())
+  name            String
+  description     String?
+  machineId       String
+  type            WorkType
+  priority        Priority   @default(MEDIA)
+  visibility      Visibility @default(SOLO_JEFES)
+  frequencyDays   Int
+  active          Boolean    @default(true)
+  lastGeneratedAt DateTime?
+  nextDueAt       DateTime
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  machine          Machine     @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  generatedOrders  WorkOrder[] @relation("GeneratedFromPlan")
+
+  @@index([active, nextDueAt])
 }
