@@ -3,6 +3,10 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser, requireJefe } from "@/lib/session";
 import { canViewOrder } from "@/lib/permissions";
+import {
+  notifyOrderAssigned,
+  notifyOrderStatusChanged,
+} from "@/lib/notifications";
 
 const updateSchema = z.object({
   title: z.string().min(1).max(200),
@@ -63,7 +67,10 @@ export async function PUT(
   }
   const { assigneeIds, scheduledFor, status, ...rest } = parsed.data;
 
-  const existing = await prisma.workOrder.findUnique({ where: { id } });
+  const existing = await prisma.workOrder.findUnique({
+    where: { id },
+    include: { assignments: { select: { userId: true } } },
+  });
   if (!existing) {
     return NextResponse.json({ error: "No encontrada" }, { status: 404 });
   }
@@ -90,6 +97,28 @@ export async function PUT(
       },
     });
   });
+
+  const previousAssignees = new Set(existing.assignments.map((a) => a.userId));
+  const newAssignees = assigneeIds.filter((uid) => !previousAssignees.has(uid));
+  if (newAssignees.length) {
+    await notifyOrderAssigned(newAssignees, {
+      id: order.id,
+      number: order.number,
+      title: order.title,
+    });
+  }
+
+  if (status !== existing.status) {
+    const keptAssignees = assigneeIds.filter((uid) => previousAssignees.has(uid));
+    if (keptAssignees.length) {
+      await notifyOrderStatusChanged(
+        keptAssignees,
+        { id: order.id, number: order.number, title: order.title },
+        status
+      );
+    }
+  }
+
   return NextResponse.json(order);
 }
 

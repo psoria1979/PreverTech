@@ -39,7 +39,7 @@ export function MachineForm({ machine }: { machine?: Machine }) {
       setLoading(false);
       return;
     }
-    router.push("/machines");
+    router.push(machine ? `/machines/${machine.id}` : "/machines");
     router.refresh();
   }
 

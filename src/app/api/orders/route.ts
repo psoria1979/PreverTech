@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser, requireJefe } from "@/lib/session";
 import { visibleOrdersWhere } from "@/lib/permissions";
+import { notifyOrderAssigned } from "@/lib/notifications";
 
 const orderSchema = z.object({
   title: z.string().min(1).max(200),
@@ -61,5 +62,14 @@ export async function POST(req: Request) {
         : undefined,
     },
   });
+
+  if (assigneeIds.length) {
+    await notifyOrderAssigned(assigneeIds, {
+      id: order.id,
+      number: order.number,
+      title: order.title,
+    });
+  }
+
   return NextResponse.json(order, { status: 201 });
 }

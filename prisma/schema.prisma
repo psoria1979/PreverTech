@@ -58,6 +58,7 @@ model User {
 
   createdOrders WorkOrder[]            @relation("CreatedOrders")
   assignments   WorkOrderAssignment[]
+  notifications Notification[]
 }
 
 model Machine {
@@ -93,6 +94,8 @@ model WorkOrder {
   creator   User   @relation("CreatedOrders", fields: [creatorId], references: [id])
 
   assignments WorkOrderAssignment[]
+  photos      WorkOrderPhoto[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -100,6 +103,37 @@ model WorkOrder {
   @@index([status])
   @@index([type])
   @@index([machineId])
+  @@index([createdAt])
+}
+
+model WorkOrderPhoto {
+  id          String   @id @default(cuid())
+  workOrderId String
+  filename    String
+  mimeType    String
+  size        Int
+  data        Bytes
+  createdAt   DateTime @default(now())
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  @@index([workOrderId])
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String
+  title       String
+  message     String
+  workOrderId String?
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workOrder WorkOrder? @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+
+  @@index([userId, readAt])
+  @@index([createdAt])
 }
 
 model WorkOrderAssignment {

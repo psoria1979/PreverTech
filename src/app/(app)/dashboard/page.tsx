@@ -1,14 +1,34 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { visibleOrdersWhere } from "@/lib/permissions";
 import { PageHeader } from "@/components/PageHeader";
 import { DashboardCharts } from "./DashboardCharts";
+import { DashboardRangeForm } from "./DashboardRangeForm";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await requireUser();
-  const where = visibleOrdersWhere(user);
+  const sp = await searchParams;
+  const fromStr = typeof sp.from === "string" ? sp.from : undefined;
+  const toStr = typeof sp.to === "string" ? sp.to : undefined;
+  const from = fromStr ? new Date(fromStr) : null;
+  const to = toStr ? new Date(toStr) : null;
+  if (to) to.setHours(23, 59, 59, 999);
+
+  const and: Prisma.WorkOrderWhereInput[] = [];
+  const visibility = visibleOrdersWhere(user);
+  if (visibility) and.push(visibility);
+  const createdAt: Prisma.DateTimeFilter = {};
+  if (from) createdAt.gte = from;
+  if (to) createdAt.lte = to;
+  if (Object.keys(createdAt).length) and.push({ createdAt });
+  const where: Prisma.WorkOrderWhereInput = and.length ? { AND: and } : {};
 
   const [
     totalOrders,
@@ -103,7 +123,12 @@ export default async function DashboardPage() {
         description={`Hola, ${user.name}. Panorama general del mantenimiento.`}
       />
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <DashboardRangeForm
+        initialFrom={fromStr ?? ""}
+        initialTo={toStr ?? ""}
+      />
+
+      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Kpi label="Órdenes totales" value={totalOrders} />
         <Kpi label="Pendientes" value={pendingOrders} tone="amber" />
         <Kpi label="En progreso" value={inProgressOrders} tone="blue" />

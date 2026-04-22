@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { SignOutButton } from "@/components/SignOutButton";
 import { NavLink } from "@/components/NavLink";
@@ -10,6 +11,9 @@ export default async function AppLayout({
 }) {
   const user = await requireUser();
   const isJefe = user.role === "JEFE";
+  const unread = await prisma.notification.count({
+    where: { userId: user.id, readAt: null },
+  });
 
   return (
     <div className="flex min-h-screen flex-1">
@@ -24,6 +28,11 @@ export default async function AppLayout({
           <NavLink href="/dashboard" label="Dashboard" />
           <NavLink href="/orders" label="Órdenes de trabajo" />
           <NavLink href="/machines" label="Máquinas" />
+          <NavLink
+            href="/notifications"
+            label="Notificaciones"
+            badge={unread > 0 ? unread : undefined}
+          />
           {isJefe && <NavLink href="/users" label="Usuarios" />}
         </nav>
         <div className="mt-6 border-t border-zinc-200 pt-4 dark:border-zinc-800">

@@ -23,9 +23,20 @@ Aplicación web para gestionar mantenimiento industrial: órdenes de trabajo (pr
     - `SOLO_JEFES` — la ven únicamente los jefes.
     - `ASIGNADOS` — jefes + empleados explícitamente asignados.
     - `TODOS` — jefes + todos los empleados.
-  - **Exportación a PDF** imprimible (`/orders/[id]/pdf`).
-- **Máquinas**: código, nombre, ubicación, estado (operativa / en mantenimiento / fuera de servicio).
-- **Dashboard**: KPIs y gráficos por tipo, prioridad, estado, estado de máquinas y top máquinas con más órdenes.
+  - **Filtros y búsqueda** por texto, tipo, estado, prioridad, máquina y rango de fechas.
+  - **Exportación a PDF** imprimible por orden (`/orders/[id]/pdf`).
+  - **Exportación CSV** de la lista filtrada (`/api/reports/orders.csv?...`).
+  - **Fotos adjuntas** (JPEG/PNG/WebP/GIF, hasta 8 MB) subidas por el jefe o los empleados asignados.
+- **Máquinas**:
+  - Código, nombre, ubicación, estado (operativa / en mantenimiento / fuera de servicio).
+  - **Detalle con historial/timeline** de órdenes por máquina.
+- **Dashboard**:
+  - KPIs y gráficos por tipo, prioridad, estado, estado de máquinas y top máquinas con más órdenes.
+  - **Filtro por rango de fechas** para ver los KPIs en cualquier período.
+  - **Reporte PDF** exportable (`/api/reports/dashboard.pdf?from=&to=`).
+- **Notificaciones in-app**:
+  - Se generan cuando se asigna una orden a un empleado o cuando cambia el estado de una orden en la que está asignado.
+  - Badge con conteo de no leídas en el menú; vista dedicada en `/notifications`.
 
 ## Setup
 
@@ -99,24 +110,33 @@ Implementado en `src/lib/permissions.ts`:
 ```
 prisma/
   schema.prisma        User · Machine · WorkOrder · WorkOrderAssignment
+                       WorkOrderPhoto · Notification
   seed.ts
 src/
   app/
-    (app)/             layout protegido con sidebar
-      dashboard/
-      machines/
-      orders/
+    (app)/             layout protegido con sidebar + badge de no leídas
+      dashboard/       con filtro por fechas y descarga PDF
+      machines/        lista + detalle con historial/timeline + edición
+      orders/          lista con filtros + detalle + PDF + fotos
+      notifications/
       users/
     api/
       auth/[...nextauth]/
-      machines/ orders/ users/
+      machines/
+      orders/          crea/edita/elimina + fotos + PDF imprimible
+      notifications/   list + marcar leídas
+      reports/         orders.csv + dashboard.pdf
+      users/
     login/
     layout.tsx · page.tsx · providers.tsx
   components/
     Badges · NavLink · PageHeader · SignOutButton
   lib/
     auth.ts            NextAuth (credentials + JWT)
-    order-pdf.tsx      generador de PDF
+    order-pdf.tsx      PDF de una orden
+    dashboard-pdf.tsx  PDF del dashboard
+    order-filters.ts   filtros/visibilidad en Prisma where
+    notifications.ts   helpers de notificaciones
     permissions.ts     reglas de visibilidad
     prisma.ts
     session.ts         requireUser / requireJefe

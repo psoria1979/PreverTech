@@ -1,23 +1,37 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { visibleOrdersWhere } from "@/lib/permissions";
+import { buildOrdersWhere, parseOrderFilters } from "@/lib/order-filters";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge, PriorityBadge, TypeBadge } from "@/components/Badges";
+import { OrdersFilters } from "./OrdersFilters";
 
 export const dynamic = "force-dynamic";
 
-export default async function OrdersPage() {
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await requireUser();
-  const where = visibleOrdersWhere(user);
-  const orders = await prisma.workOrder.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    include: {
-      machine: { select: { code: true, name: true } },
-      creator: { select: { name: true } },
-    },
-  });
+  const sp = await searchParams;
+  const filters = parseOrderFilters(sp);
+  const where = buildOrdersWhere(user, filters);
+
+  const [orders, machines] = await Promise.all([
+    prisma.workOrder.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        machine: { select: { code: true, name: true } },
+        creator: { select: { name: true } },
+      },
+    }),
+    prisma.machine.findMany({
+      orderBy: { code: "asc" },
+      select: { id: true, code: true, name: true },
+    }),
+  ]);
   const isJefe = user.role === "JEFE";
 
   return (
@@ -41,6 +55,13 @@ export default async function OrdersPage() {
         }
       />
 
+      <OrdersFilters machines={machines} />
+
+      <p className="mb-2 text-xs text-zinc-500">
+        {orders.length} orden{orders.length === 1 ? "" : "es"} encontrada
+        {orders.length === 1 ? "" : "s"}
+      </p>
+
       <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
           <thead className="bg-zinc-50 text-left text-xs font-medium uppercase tracking-wide text-zinc-500 dark:bg-zinc-800/50">
@@ -61,7 +82,7 @@ export default async function OrdersPage() {
                   colSpan={7}
                   className="px-4 py-10 text-center text-sm text-zinc-500"
                 >
-                  No hay órdenes para mostrar.
+                  No hay órdenes que coincidan con los filtros.
                 </td>
               </tr>
             ) : (

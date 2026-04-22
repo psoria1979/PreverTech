@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/session";
 import { canViewOrder } from "@/lib/permissions";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge, PriorityBadge, TypeBadge } from "@/components/Badges";
+import { PhotosSection } from "./PhotosSection";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,16 @@ export default async function OrderDetailPage({
       assignments: {
         include: { user: { select: { id: true, name: true, username: true } } },
       },
+      photos: {
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          filename: true,
+          mimeType: true,
+          size: true,
+          createdAt: true,
+        },
+      },
     },
   });
   if (!order) notFound();
@@ -41,6 +52,8 @@ export default async function OrderDetailPage({
   }
 
   const isJefe = user.role === "JEFE";
+  const isAssignee = order.assignments.some((a) => a.userId === user.id);
+  const canUpload = isJefe || isAssignee;
 
   return (
     <>
@@ -133,6 +146,15 @@ export default async function OrderDetailPage({
           )}
         </aside>
       </div>
+
+      <PhotosSection
+        orderId={order.id}
+        initial={order.photos.map((p) => ({
+          ...p,
+          createdAt: p.createdAt.toISOString(),
+        }))}
+        canUpload={canUpload}
+      />
     </>
   );
 }

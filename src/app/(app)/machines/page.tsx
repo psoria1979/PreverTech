@@ -49,14 +49,14 @@ export default async function MachinesPage() {
               <th className="px-4 py-3">Nombre</th>
               <th className="px-4 py-3">Ubicación</th>
               <th className="px-4 py-3">Estado</th>
-              {isJefe && <th className="px-4 py-3" />}
+              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
             {machines.length === 0 ? (
               <tr>
                 <td
-                  colSpan={isJefe ? 5 : 4}
+                  colSpan={5}
                   className="px-4 py-8 text-center text-sm text-zinc-500"
                 >
                   Sin máquinas cargadas.
@@ -77,16 +77,14 @@ export default async function MachinesPage() {
                       {STATUS_LABEL[m.status]}
                     </span>
                   </td>
-                  {isJefe && (
-                    <td className="px-4 py-3 text-right">
-                      <Link
-                        href={`/machines/${m.id}`}
-                        className="text-sm font-medium text-orange-600 hover:underline"
-                      >
-                        Editar
-                      </Link>
-                    </td>
-                  )}
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/machines/${m.id}`}
+                      className="text-sm font-medium text-orange-600 hover:underline"
+                    >
+                      Ver
+                    </Link>
+                  </td>
                 </tr>
               ))
             )}
