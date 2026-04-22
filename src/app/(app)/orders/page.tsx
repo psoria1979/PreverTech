@@ -44,14 +44,22 @@ export default async function OrdersPage({
             : "Órdenes asignadas o visibles para tu rol."
         }
         actions={
-          isJefe ? (
+          <div className="flex gap-2">
             <Link
-              href="/orders/new"
-              className="rounded-md bg-orange-600 px-3 py-2 text-sm font-medium text-white hover:bg-orange-700"
+              href="/orders/calendar"
+              className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
             >
-              + Nueva orden
+              Calendario
             </Link>
-          ) : null
+            {isJefe && (
+              <Link
+                href="/orders/new"
+                className="rounded-md bg-orange-600 px-3 py-2 text-sm font-medium text-white hover:bg-orange-700"
+              >
+                + Nueva orden
+              </Link>
+            )}
+          </div>
         }
       />
 

@@ -59,6 +59,7 @@ model User {
   createdOrders WorkOrder[]            @relation("CreatedOrders")
   assignments   WorkOrderAssignment[]
   notifications Notification[]
+  comments      OrderComment[]
 }
 
 model Machine {
@@ -96,6 +97,7 @@ model WorkOrder {
   assignments WorkOrderAssignment[]
   photos      WorkOrderPhoto[]
   notifications Notification[]
+  comments    OrderComment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -118,6 +120,19 @@ model WorkOrderPhoto {
   workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
 
   @@index([workOrderId])
+}
+
+model OrderComment {
+  id          String   @id @default(cuid())
+  workOrderId String
+  userId      String
+  body        String
+  createdAt   DateTime @default(now())
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workOrderId, createdAt])
 }
 
 model Notification {

@@ -90,32 +90,51 @@ export default async function MachineDetailPage({
           )}
         </section>
 
-        <aside className="space-y-3 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <h3 className="text-sm font-semibold">Resumen de órdenes</h3>
-          <ul className="space-y-1 text-sm">
-            <li className="flex justify-between">
-              <span>Total</span>
-              <span className="font-mono">{orders.length}</span>
-            </li>
-            <li className="flex justify-between">
-              <span>Pendientes</span>
-              <span className="font-mono">
-                {countMap["PENDIENTE"] ?? 0}
-              </span>
-            </li>
-            <li className="flex justify-between">
-              <span>En progreso</span>
-              <span className="font-mono">
-                {countMap["EN_PROGRESO"] ?? 0}
-              </span>
-            </li>
-            <li className="flex justify-between">
-              <span>Completadas</span>
-              <span className="font-mono">
-                {countMap["COMPLETADA"] ?? 0}
-              </span>
-            </li>
-          </ul>
+        <aside className="space-y-4 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <div>
+            <h3 className="mb-2 text-sm font-semibold">Resumen de órdenes</h3>
+            <ul className="space-y-1 text-sm">
+              <li className="flex justify-between">
+                <span>Total</span>
+                <span className="font-mono">{orders.length}</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Pendientes</span>
+                <span className="font-mono">
+                  {countMap["PENDIENTE"] ?? 0}
+                </span>
+              </li>
+              <li className="flex justify-between">
+                <span>En progreso</span>
+                <span className="font-mono">
+                  {countMap["EN_PROGRESO"] ?? 0}
+                </span>
+              </li>
+              <li className="flex justify-between">
+                <span>Completadas</span>
+                <span className="font-mono">
+                  {countMap["COMPLETADA"] ?? 0}
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="border-t border-zinc-200 pt-4 text-center dark:border-zinc-800">
+            <h3 className="mb-2 text-sm font-semibold">QR de la máquina</h3>
+            {}
+            <img
+              src={`/api/machines/${machine.id}/qr`}
+              alt={`QR de ${machine.code}`}
+              className="mx-auto h-40 w-40 rounded border border-zinc-200 bg-white dark:border-zinc-800"
+            />
+            <a
+              href={`/api/machines/${machine.id}/qr`}
+              download={`qr-${machine.code}.png`}
+              className="mt-2 inline-block text-xs font-medium text-orange-600 hover:underline"
+            >
+              Descargar PNG
+            </a>
+          </div>
         </aside>
       </div>
 

@@ -36,10 +36,15 @@ export default async function AppLayout({
           {isJefe && <NavLink href="/users" label="Usuarios" />}
         </nav>
         <div className="mt-6 border-t border-zinc-200 pt-4 dark:border-zinc-800">
-          <p className="px-2 text-sm font-medium">{user.name}</p>
-          <p className="px-2 text-xs text-zinc-500">
-            @{user.username} · {isJefe ? "Jefe" : "Empleado"}
-          </p>
+          <Link
+            href="/profile"
+            className="block rounded-md px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            <p className="text-sm font-medium">{user.name}</p>
+            <p className="text-xs text-zinc-500">
+              @{user.username} · {isJefe ? "Jefe" : "Empleado"}
+            </p>
+          </Link>
           <SignOutButton />
         </div>
       </aside>

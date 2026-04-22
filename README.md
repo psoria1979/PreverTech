@@ -27,9 +27,13 @@ Aplicación web para gestionar mantenimiento industrial: órdenes de trabajo (pr
   - **Exportación a PDF** imprimible por orden (`/orders/[id]/pdf`).
   - **Exportación CSV** de la lista filtrada (`/api/reports/orders.csv?...`).
   - **Fotos adjuntas** (JPEG/PNG/WebP/GIF, hasta 8 MB) subidas por el jefe o los empleados asignados.
+  - **Comentarios** (hilo de actividad) — todos los que ven la orden pueden comentar.
+  - **Calendario** de órdenes programadas (`/orders/calendar`).
 - **Máquinas**:
   - Código, nombre, ubicación, estado (operativa / en mantenimiento / fuera de servicio).
+  - **Búsqueda y filtro** por estado.
   - **Detalle con historial/timeline** de órdenes por máquina.
+  - **QR code** autogenerado por máquina (`/api/machines/[id]/qr`) para escanear en planta.
 - **Dashboard**:
   - KPIs y gráficos por tipo, prioridad, estado, estado de máquinas y top máquinas con más órdenes.
   - **Filtro por rango de fechas** para ver los KPIs en cualquier período.
@@ -37,6 +41,7 @@ Aplicación web para gestionar mantenimiento industrial: órdenes de trabajo (pr
 - **Notificaciones in-app**:
   - Se generan cuando se asigna una orden a un empleado o cuando cambia el estado de una orden en la que está asignado.
   - Badge con conteo de no leídas en el menú; vista dedicada en `/notifications`.
+- **Perfil de usuario** (`/profile`): ver datos propios y **cambiar el PIN** propio.
 
 ## Setup
 

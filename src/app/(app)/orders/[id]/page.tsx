@@ -6,6 +6,7 @@ import { canViewOrder } from "@/lib/permissions";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge, PriorityBadge, TypeBadge } from "@/components/Badges";
 import { PhotosSection } from "./PhotosSection";
+import { CommentsSection } from "./CommentsSection";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,10 @@ export default async function OrderDetailPage({
           size: true,
           createdAt: true,
         },
+      },
+      comments: {
+        orderBy: { createdAt: "asc" },
+        include: { user: { select: { id: true, name: true, username: true } } },
       },
     },
   });
@@ -154,6 +159,18 @@ export default async function OrderDetailPage({
           createdAt: p.createdAt.toISOString(),
         }))}
         canUpload={canUpload}
+      />
+
+      <CommentsSection
+        orderId={order.id}
+        currentUserId={user.id}
+        currentUserRole={user.role}
+        initial={order.comments.map((c) => ({
+          id: c.id,
+          body: c.body,
+          createdAt: c.createdAt.toISOString(),
+          user: c.user,
+        }))}
       />
     </>
   );

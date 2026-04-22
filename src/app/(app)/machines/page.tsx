@@ -1,7 +1,9 @@
 import Link from "next/link";
+import type { Prisma, MachineStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { PageHeader } from "@/components/PageHeader";
+import { MachinesFilters } from "./MachinesFilters";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +21,39 @@ const STATUS_TONE: Record<string, string> = {
   FUERA_DE_SERVICIO: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200",
 };
 
-export default async function MachinesPage() {
+const STATUSES: MachineStatus[] = [
+  "OPERATIVA",
+  "EN_MANTENIMIENTO",
+  "FUERA_DE_SERVICIO",
+];
+
+export default async function MachinesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await requireUser();
-  const machines = await prisma.machine.findMany({ orderBy: { code: "asc" } });
+  const sp = await searchParams;
+  const q = typeof sp.q === "string" ? sp.q : "";
+  const statusRaw = typeof sp.status === "string" ? sp.status : "";
+  const status = STATUSES.includes(statusRaw as MachineStatus)
+    ? (statusRaw as MachineStatus)
+    : "";
+
+  const where: Prisma.MachineWhereInput = {};
+  if (q) {
+    where.OR = [
+      { code: { contains: q, mode: "insensitive" } },
+      { name: { contains: q, mode: "insensitive" } },
+      { location: { contains: q, mode: "insensitive" } },
+    ];
+  }
+  if (status) where.status = status;
+
+  const machines = await prisma.machine.findMany({
+    where,
+    orderBy: { code: "asc" },
+  });
   const isJefe = user.role === "JEFE";
 
   return (
@@ -41,6 +73,12 @@ export default async function MachinesPage() {
         }
       />
 
+      <MachinesFilters initialQ={q} initialStatus={status} />
+
+      <p className="mb-2 text-xs text-zinc-500">
+        {machines.length} máquina{machines.length === 1 ? "" : "s"}
+      </p>
+
       <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
           <thead className="bg-zinc-50 dark:bg-zinc-800/50">
@@ -59,7 +97,9 @@ export default async function MachinesPage() {
                   colSpan={5}
                   className="px-4 py-8 text-center text-sm text-zinc-500"
                 >
-                  Sin máquinas cargadas.
+                  {q || status
+                    ? "No hay máquinas que coincidan con los filtros."
+                    : "Sin máquinas cargadas."}
                 </td>
               </tr>
             ) : (
